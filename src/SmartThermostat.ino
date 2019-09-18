@@ -5,23 +5,25 @@
  * Date: July 2019
  */
 //#include "TemperatureManager.cpp"
-#define CLIMATE_MODE_COOL 1
-#define CLIMATE_MODE_HEAT 2
-#define CLIMATE_MODE_AUTO 3
-#define CLIMATE_MODE_OFF 0
+
+//Imports and Definitions for Climate Control Manager
+#define CLIMATE_MODE_COOL 1 //Only allows system to be off or cooling
+#define CLIMATE_MODE_HEAT 2 //Only allows system to be off or heating
+#define CLIMATE_MODE_AUTO 3 //Allows system to heat, cool, or rest as nessary
+#define CLIMATE_MODE_OFF 0  //Disables heating and cooling
 #define FAN_MODE_OFF 0
 #define FAN_MODE_ON 1
-#define FAN_MODE_AUTO 2
+#define FAN_MODE_AUTO 2 //Fan turns on when climate system is running
 #include "Adafruit_DHT_Particle.h"
 #include "ThermostatMode.cpp"
-static long minReadWaitTime = 10000;
+static long minReadWaitTime = 10000; //For climate sensor
 
 //Climate Vars
 double curTemp;
 double curHumid;
-long timeOfLastRead = -(minReadWaitTime);
-int climatePIN;
-DHT dht = DHT(D4, DHT22);
+long timeOfLastRead = -(minReadWaitTime); //set to negative of min read time to allow reading on boot
+int climatePIN = D4;
+DHT dht = DHT(climatePIN, DHT22);
 
 int coolPin;
 int heatPin;
@@ -39,6 +41,7 @@ ThermostatMode thermostat;
 int upArrow = A0;
 int downArrow = A1;
 int menuButton = D0;
+
 // setup() runs once, when the device is first turned on.
 void setup()
 {
@@ -60,6 +63,8 @@ void loop()
   // The core of your code will likely live here.
 }
 
+//User Input handling
+//TODO Implement Debouncer for buttons
 void buttonUp()
 {
   upTemperature();
@@ -75,6 +80,7 @@ void buttonMenu()
   //TODO
 }
 
+//Prepares climate sensor and all pins for relay controls
 void tempsetup(int climatePIN, int coolPIN, int heatPIN, int fanPIN)
 {
   pinMode(climatePIN, INPUT);
@@ -91,21 +97,25 @@ void tempsetup(int climatePIN, int coolPIN, int heatPIN, int fanPIN)
   pinMode(fanPin, OUTPUT);
 }
 
+//Checks of the Thermostat mode allows for cooling
 bool canCool()
 {
   return climateMode == CLIMATE_MODE_COOL || climateMode == CLIMATE_MODE_AUTO;
 }
 
+//Checks if the Thermostat mode allows for heating
 bool canHeat()
 {
   return climateMode == CLIMATE_MODE_HEAT || climateMode == CLIMATE_MODE_AUTO;
 }
 
+//Checks if fan mode allows it to run
 bool canFan()
 {
   return fanMode == FAN_MODE_AUTO || fanMode == FAN_MODE_ON;
 }
 
+//Updates Temperature and Humidity
 void getCurClimate()
 {
   if (canReadClimate())
@@ -115,11 +125,13 @@ void getCurClimate()
   }
 }
 
+//Checks if climate sensor can be read from
 bool canReadClimate()
 {
   return millis() - timeOfLastRead > minReadWaitTime;
 }
 
+//updates Temperature and checks subclasses for approprate control of climate system
 void runClimateCheck()
 {
   getCurClimate();

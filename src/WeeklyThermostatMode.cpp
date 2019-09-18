@@ -31,6 +31,16 @@ private:
   }
 
 public:
+  WeeklyThermostatMode()
+  {
+    targetTemperature = 75;
+  }
+
+  WeeklyThermostatMode(int target)
+  {
+    targetTemperature = target;
+  }
+
   bool shouldCool(double currTemp, double humidity)
   {
     return currTemp + 2 > getTargetTemperature();
@@ -47,5 +57,6 @@ public:
 
   void update()
   {
+    //TODO:Implment loading mechanism for weekly temperature programing
   }
 };
