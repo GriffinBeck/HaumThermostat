@@ -1,0 +1,122 @@
+#define CLIMATE_MODE_COOL 1
+#define CLIMATE_MODE_HEAT 2
+#define CLIMATE_MODE_AUTO 3
+#define CLIMATE_MODE_OFF 0
+#define FAN_MODE_OFF 0
+#define FAN_MODE_ON 1
+#define FAN_MODE_AUTO 2
+#include "Adafruit_DHT.h"
+#include "ThermostatMode.cpp"
+static long minReadWaitTime = 10000;
+
+int climateMode = CLIMATE_MODE_OFF;
+int fanMode = FAN_MODE_AUTO;
+
+bool cooling = false;
+bool heating = false;
+bool faning = false;
+
+ThermostatMode *thermostatMode;
+
+double curTemp;
+double curHumid;
+long timeOfLastRead = -(minReadWaitTime);
+int climatePIN;
+DHT dht;
+
+int heatPin;
+int coolPin;
+int fanPin;
+
+void tempsetup(int climatePIN, int coolPIN, int heatPIN, int fanPIN)
+{
+  dht = DHT(climatePIN, DHT22, 6);
+  dht.begin();
+  //TODO INPROGRESS
+  int t = 80;
+  ThermostatMode b{t};
+  thermostatMode = &b;
+
+  coolPin = coolPIN;
+  heatPin = heatPIN;
+  fanPin = fanPIN;
+
+  pinMode(coolPin, OUTPUT);
+  pinMode(heatPin, OUTPUT);
+  pinMode(fanPin, OUTPUT);
+}
+
+bool canCool()
+{
+  return climateMode == CLIMATE_MODE_COOL || climateMode == CLIMATE_MODE_AUTO;
+}
+
+bool canHeat()
+{
+  return climateMode == CLIMATE_MODE_HEAT || climateMode == CLIMATE_MODE_AUTO;
+}
+
+bool canFan()
+{
+  return fanMode == FAN_MODE_AUTO || fanMode == FAN_MODE_ON;
+}
+
+void getCurClimate()
+{
+  if (canReadClimate())
+  {
+    curTemp = dht.getTempFarenheit();
+    curHumid = dht.getHumidity();
+  }
+}
+
+bool canReadClimate()
+{
+  return millis() - timeOfLastRead > minReadWaitTime;
+}
+
+void runClimateCheck()
+{
+  getCurClimate();
+
+  cooling = false;
+  if (canCool())
+  {
+    cooling = (*thermostatMode).shouldCool(curTemp, curHumid);
+  }
+  heating = false;
+  if (canHeat())
+  {
+    heating = (*thermostatMode).shouldHeat(curTemp, curHumid);
+  }
+  faning = false;
+  if (canFan())
+  {
+    faning = (*thermostatMode).shouldFan(curTemp, curHumid) || fanMode == FAN_MODE_ON;
+  }
+
+  if (cooling)
+  {
+    digitalWrite(coolPin, HIGH);
+    digitalWrite(heatPin, LOW);
+  }
+  else if (heating)
+  {
+    digitalWrite(coolPin, LOW);
+    digitalWrite(heatPin, HIGH);
+  }
+  else
+  {
+    digitalWrite(coolPin, LOW);
+    digitalWrite(heatPin, LOW);
+  }
+
+  if (faning)
+  {
+    digitalWrite(fanPin, HIGH);
+  }
+  else
+  {
+    digitalWrite(fanPin, LOW);
+  }
+}

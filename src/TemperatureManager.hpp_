@@ -1,0 +1,19 @@
+#define CLIMATE_MODE_COOL 1
+#define CLIMATE_MODE_HEAT 2
+#define CLIMATE_MODE_AUTO 3
+#define CLIMATE_MODE_OFF 0
+#define FAN_MODE_OFF 0
+#define FAN_MODE_ON 1
+#define FAN_MODE_AUTO 2
+#include "Adafruit_DHT.h"
+#include "ThermostatMode.hpp"
+static long minReadWaitTime = 10000;
+
+bool canCool();
+bool canHeat();
+bool canFan();
+void tempsetup(int climatePIN, int coolPIN, int heatPIN, int fanPIN);
+
+void getCurClimate();
+bool canReadClimate();
+void runClimateCheck();
