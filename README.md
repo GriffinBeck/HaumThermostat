@@ -1,8 +1,8 @@
-# SmartThermostat
+# HaumThermostat
 
-A Particle project named SmartThermostat
+A Particle project named HaumThermostat
 
-## Welcome to your project!
+## Particle Project Welcome --Auto Generated--
 
 Every new Particle project is composed of 3 important elements that you'll see have been created in your project directory for SmartThermostat.
 
