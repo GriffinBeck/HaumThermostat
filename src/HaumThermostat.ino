@@ -1,5 +1,5 @@
 /*
- * Project SmartThermostat
+ * Project HaumThermostat
  * Description: A Smart Thermostat with expandability and soon to many options
  * Author: Griffin Beck
  * Date: July 2019
@@ -46,14 +46,16 @@ int menuButton = D0;
 void setup()
 {
   Serial.begin(9600);
+  //Setup Climate Sensor and Climate Control Relays
   tempsetup(D4, D5, D6, D7);
-  // Put initialization like pinMode and begin functions here.
-  pinMode(upArrow, INPUT);
-  pinMode(downArrow, INPUT);
-  pinMode(menuButton, INPUT);
-  attachInterrupt(upArrow, buttonUp, RISING);
-  attachInterrupt(downArrow, buttonDown, RISING);
-  attachInterrupt(menuButton, buttonMenu, RISING);
+
+  //Button Initializations
+  pinMode(upArrow, INPUT_PULLUP);
+  pinMode(downArrow, INPUT_PULLUP);
+  pinMode(menuButton, INPUT_PULLUP);
+  attachInterrupt(upArrow, buttonUp, CHANGE);
+  attachInterrupt(downArrow, buttonDown, CHANGE);
+  attachInterrupt(menuButton, buttonMenu, CHANGE);
 }
 
 // loop() runs over and over again, as quickly as it can execute.
@@ -65,16 +67,39 @@ void loop()
 
 //User Input handling
 //TODO Implement Debouncer for buttons
+boolean buttonDebouncer(long lastTime)
+{
+  return millis() - lastTime > 50;
+}
+
+long buttonUpLastPressTime = 0;
+boolean buttonUpLastState = false;
 void buttonUp()
 {
-  upTemperature();
+  if (buttonDebouncer(buttonDebouncer(buttonUpLastPressTime)))
+  {
+    if (digitalRead(upArrow) == LOW) //Reading when going low in order to prepare for future handling of short vs long button presses
+    {
+      upTemperature();
+    }
+  }
 }
 
+long buttonDownLastPressTime = 0;
+boolean buttonDownLastState = false;
 void buttonDown()
 {
-  downTemperature();
+  if (buttonDebouncer(buttonDebouncer(buttonDownLastPressTime)))
+  {
+    if (digitalRead(downArrow) == LOW)
+    {
+      downTemperature();
+    }
+  }
 }
 
+long buttonMenuLastPressTime = 0;
+boolean buttonMenuLastState = false;
 void buttonMenu()
 {
   //TODO
